@@ -32,7 +32,7 @@ def install_package(package_name: str):
     Returns:
         str: The standard output result of the installation process.
     """
-    command = f'pip install {package_name}'
+    command = f"pip install {package_name}"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 
@@ -86,8 +86,9 @@ def web_search(
 
     Raises:
         Exception: If there's an error in the API call or if the API key is not set correctly.
-    """
+    """  # noqa
     from tavily import TavilyClient
+
     client = TavilyClient(os.getenv("TAVILY_API_KEY"))
     response = client.search(
         query=query,
@@ -105,7 +106,7 @@ def web_search(
 def translate(content: str, target_lang: str):
     """Translate content to target language."""
     agent = get_general_agent(model=os.getenv("MODEL"))
-    return agent.run(f'translate <CONTENT>{content}</CONTENT> to {target_lang}')
+    return agent.run(f"translate <CONTENT>{content}</CONTENT> to {target_lang}")
 
 
 def read_link(url: str) -> str:
@@ -115,3 +116,18 @@ def read_link(url: str) -> str:
         soup = BeautifulSoup(res.text)
         return soup.text
     return "read link failed."
+
+
+def generate_image_name(image_path: str):
+    """Generate a more meaningful name for the image."""
+    agent = get_general_agent(model=os.getenv("VISION_MODEL"))
+    filename = agent.run(
+        [
+            {
+                "text": f"generate a more meaningful name for the image: {image_path}, return the file name without explanation"  # noqa
+            },
+            {"image": image_path},
+        ],
+        return_type="a str as filename",
+    )
+    return filename

@@ -4,9 +4,17 @@ import click
 import rich
 from GeneralAgent import Agent
 
-from aicli.conf import settings
 from aicli.agentlib import get_general_agent, setup_agent
-from aicli.tools import install_package, run_command, web_search, translate, read_link
+from aicli.conf import settings
+from aicli.tools import (
+    generate_image_name,
+    install_package,
+    read_link,
+    run_command,
+    translate,
+    web_search,
+)
+
 
 @click.command()
 @click.argument("query", required=False)
@@ -32,7 +40,16 @@ from aicli.tools import install_package, run_command, web_search, translate, rea
     is_flag=True,
     help="Print all the folders for the current workspace",
 )
-def cli(query, model, token_limit, archive, archive_output, no_context, show_path, advanced):
+def cli(  # noqa
+    query,
+    model,
+    token_limit,
+    archive,
+    archive_output,
+    no_context,
+    show_path,
+    advanced,
+):
     """CLI command to handle user query and interact with the agent."""
     if show_path:
         if settings.output_callback_path.exists():
@@ -59,7 +76,6 @@ def cli(query, model, token_limit, archive, archive_output, no_context, show_pat
         except Exception as err:
             click.echo(f"error occurred: {err}")
 
-
     if archive_output:
         try:
             name = settings.output_callback_path.stem
@@ -81,16 +97,25 @@ def cli(query, model, token_limit, archive, archive_output, no_context, show_pat
         print(">>> :")
         query = input()
 
-    functions = [run_command, install_package, web_search, translate, read_link]
+    functions = [
+        run_command,
+        install_package,
+        web_search,
+        translate,
+        read_link,
+        generate_image_name,
+    ]
     agent: Agent = setup_agent(
         token_limit=token_limit, model=model, no_context=no_context, functions=functions
     )
-    plan_agent: Agent = get_general_agent(model=model, token_limit=token_limit, role="你是一个任务规划专家，会把一个复杂的任务拆分成若干个小的步骤。")
+    plan_agent: Agent = get_general_agent(
+        model=model, token_limit=token_limit, role="你是一个任务规划专家，会把一个复杂的任务拆分成若干个小的步骤。"
+    )
 
     if advanced:
         tasks = plan_agent.run(
-            f'Based on user query: <QUERY>{query}</QUERY>, generate a list of plan so you can use your tool or write python code to solve user problem',
-            "return a list[str] of 1-10 steps that can be execute by write python code to finish user requirement.",
+            f"Based on user query: <QUERY>{query}</QUERY>, generate a list of plan so you can use your tool or write python code to solve user problem",  # noqa
+            "return a list[str] of 1-10 steps that can be execute by write python code to finish user requirement.",  # noqa
             display=True,
         )
         rich.print(tasks)
